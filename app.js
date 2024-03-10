@@ -26,6 +26,9 @@ function wishMe() {
     speak("Good Evening Sir...how may I help you");
   }
 }
+window.onload = function(){
+  speak('i have indeed been uploaded sir, we are online and ready')
+}
 function startListening() {
   recognition.start();
   isListening = true;
