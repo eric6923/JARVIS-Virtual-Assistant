@@ -1,1 +1,1 @@
-<img src='folder icon1.png' width=60%>
+<img src='coverpic.png' width=60%>
