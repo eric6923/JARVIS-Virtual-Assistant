@@ -1,3 +1,1 @@
-<div style="text-align: center">
-  <img src="readme-logo.png" height="0.1%" width="70%">
-</div>
+<img src="readme-logo.png" alt="JARVIS Beta" style="display: block; margin-left: auto; margin-right: auto; width: 70%;">
