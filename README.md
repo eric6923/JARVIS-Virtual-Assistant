@@ -1,1 +1,1 @@
-<img src='readme-logo.png' width=70%>
+<img src='readme-logo.png' width=80%>
