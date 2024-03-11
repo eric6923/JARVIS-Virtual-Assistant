@@ -1,1 +1,1 @@
-<img src='coverpic.png' width=60%>
+<img src='readme-logo.png' width=70%>
