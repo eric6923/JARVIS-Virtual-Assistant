@@ -5,10 +5,16 @@ const content = document.querySelector(".content");
 let isListening = false;
 let isCalculatorOpen = false;
 let shoppingList = [];
+let voices = [];
+
+window.speechSynthesis.onvoiceschanged = function() {
+  console.log(window.speechSynthesis.getVoices());
+};
 
 function speak(text) {
   const text_speak = new SpeechSynthesisUtterance(text);
-
+  const allvoices = window.speechSynthesis.getVoices();
+  text_speak.voice = allvoices.find(voice => voice.name === 'Microsoft Mark - English (United States)');
   text_speak.rate = 1;
   text_speak.volume = 1;
   text_speak.pitch = 1;
