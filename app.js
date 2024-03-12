@@ -1,4 +1,4 @@
-// 09-03-2024 code
+// 12-03-2024 code
 const btn = document.querySelector(".talk");
 const content = document.querySelector(".content");
 
@@ -280,6 +280,44 @@ function takeCommand(message) {
   } else if (message.includes("jarvis")) {
     isListening = true;
     wishMe();
+  }
+  else if (isListening == true && message.includes("weather")) {
+    getUserLocation();
+  }
+  function getUserLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          fetchWeatherData(latitude, longitude);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          speak("Unable to determine your location. Please manually provide a city or address.");
+        }
+      );
+    } else {
+      speak("Geolocation is not supported by your browser.");
+    }
+  }
+
+  function fetchWeatherData(latitude, longitude) {
+    const apiKey = "90dd0ca0d342b3d43647934dbd88fd77"; // Your OpenWeatherMap API key
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
+  
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        // Process weather data and provide information to the user
+        const currentTemp = Math.round(data.main.temp - 273.15); // Convert from Kelvin to Celsius
+        const currentCondition = data.weather[0].description;
+        speak(`The current temperature is ${currentTemp} degrees Celsius and the weather is ${currentCondition}.`);
+      })
+      .catch((error) => {
+        console.error("Error fetching weather data:", error);
+        speak("There was an error retrieving weather information.");
+      });
   }
 }
 const SpeechRecognition =
