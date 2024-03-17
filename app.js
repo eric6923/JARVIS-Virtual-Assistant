@@ -7,14 +7,16 @@ let isCalculatorOpen = false;
 let shoppingList = [];
 let voices = [];
 
-window.speechSynthesis.onvoiceschanged = function() {
+window.speechSynthesis.onvoiceschanged = function () {
   console.log(window.speechSynthesis.getVoices());
 };
 
 function speak(text) {
   const text_speak = new SpeechSynthesisUtterance(text);
   const allvoices = window.speechSynthesis.getVoices();
-  text_speak.voice = allvoices.find(voice => voice.name === 'Microsoft Mark - English (United States)');
+  text_speak.voice = allvoices.find(
+    (voice) => voice.name === "Microsoft Mark - English (United States)"
+  );
   text_speak.rate = 1;
   text_speak.volume = 1;
   text_speak.pitch = 1;
@@ -32,9 +34,9 @@ function wishMe() {
     speak("Good Evening Sir...how may I help you");
   }
 }
-window.onload = function(){
-  speak('i have indeed been uploaded sir, we are online and ready')
-}
+window.onload = function () {
+  speak("i have indeed been uploaded sir, we are online and ready");
+};
 function startListening() {
   recognition.start();
   isListening = true;
@@ -256,6 +258,43 @@ function takeCommand(message) {
         speak("Please provide a message for the timer.");
       }
     }
+  }
+  if (isListening == true && message.includes("alarm")) {
+    let duration = "";
+    convertTo24HourFormat(message).length == 5
+      ? (duration = convertTo24HourFormat(message))
+      : (duration = null);
+    console.log(duration);
+
+    if (isListening == true && message.includes("set") && duration !== null) {
+      setReminder(duration.toString());
+      speak(`Setting an alarm for ${duration}`);
+    }
+
+    if (
+      isListening == true &&
+      message.includes("delete") &&
+      message.includes("of")
+    ) {
+      deleteReminder(duration);
+      speak(`Deleting the alarm for ${duration}`);
+    }
+
+    if (
+      isListening == true &&
+      message.includes("all") &&
+      message.includes("delete")
+    ) {
+      deleteAllReminders();
+    }
+
+    if (
+      isListening == true &&
+      message.includes("show") &&
+      message.includes("all")
+    ) {
+      RemindersList();
+    }
   } else if (isListening == true && message.includes("add ")) {
     const item = message.split("add ")[1].split(" to my shopping list")[0];
     console.log("Item to add: " + item);
@@ -280,8 +319,7 @@ function takeCommand(message) {
   } else if (message.includes("jarvis")) {
     isListening = true;
     wishMe();
-  }
-  else if (isListening == true && message.includes("weather")) {
+  } else if (isListening == true && message.includes("weather")) {
     getUserLocation();
   }
   function getUserLocation() {
@@ -294,7 +332,9 @@ function takeCommand(message) {
         },
         (error) => {
           console.error("Error getting location:", error);
-          speak("Unable to determine your location. Please manually provide a city or address.");
+          speak(
+            "Unable to determine your location. Please manually provide a city or address."
+          );
         }
       );
     } else {
@@ -305,14 +345,16 @@ function takeCommand(message) {
   function fetchWeatherData(latitude, longitude) {
     const apiKey = "90dd0ca0d342b3d43647934dbd88fd77"; // Your OpenWeatherMap API key
     const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
-  
+
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
         // Process weather data and provide information to the user
         const currentTemp = Math.round(data.main.temp - 273.15); // Convert from Kelvin to Celsius
         const currentCondition = data.weather[0].description;
-        speak(`The current temperature is ${currentTemp} degrees Celsius and the weather is ${currentCondition}.`);
+        speak(
+          `The current temperature is ${currentTemp} degrees Celsius and the weather is ${currentCondition}.`
+        );
       })
       .catch((error) => {
         console.error("Error fetching weather data:", error);
@@ -338,3 +380,118 @@ btn.addEventListener("click", () => {
   content.textContent = "Listening....";
   startListening();
 });
+
+// alarm function
+
+function setReminder(time) {
+  const reminderTimeInput = time;
+
+  // Load existing reminders from local storage
+  let reminders = JSON.parse(localStorage.getItem("reminders")) || [];
+
+  reminders.push(reminderTimeInput);
+
+  // Save the updated reminders array to local storage
+  localStorage.setItem("reminders", JSON.stringify(reminders));
+
+  displayReminders();
+
+  scheduleReminder(reminderTimeInput);
+
+  console.log(reminderTimeInput);
+}
+
+function scheduleReminder(reminderTime) {
+  const reminderDate = new Date();
+  const [hours, minutes] = reminderTime.split(":");
+  reminderDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+  // Calculate the delay until the reminder time
+  const delayMillis = reminderDate.getTime() - Date.now();
+
+  setTimeout(function () {
+    alert("Reminder: It's time!");
+    deleteReminder(reminderTime);
+  }, delayMillis);
+}
+
+function deleteReminder(time) {
+  let reminders = JSON.parse(localStorage.getItem("reminders")) || [];
+
+  // Find the index of the reminder with the specified time
+  const index = reminders.findIndex((reminder) => reminder === time);
+
+  if (index !== -1) {
+    reminders.splice(index, 1);
+
+    // Save the updated reminders array to local storage
+    localStorage.setItem("reminders", JSON.stringify(reminders));
+
+    displayReminders();
+  } else {
+    console.log("Reminder not found");
+  }
+}
+
+function deleteAllReminders() {
+  localStorage.removeItem("reminders");
+}
+
+function displayReminders() {
+  let reminders = JSON.parse(localStorage.getItem("reminders")) || [];
+
+  reminders.forEach((reminder) => {
+    scheduleReminder(reminder);
+  });
+}
+
+// Function to be executed after the page has loaded
+window.onload = function () {
+  displayReminders();
+};
+
+function RemindersList() {
+  let reminders = JSON.parse(localStorage.getItem("reminders")) || [];
+
+  let size = reminders.length;
+
+  speak(`You have ${size} reminders set sir,  `);
+
+  for (let i = 0; i < size - 1; i++) {
+    const hour = reminders[i].substring(0, 2);
+    const minute = reminders[i].substring(3, 5);
+    speak(parseInt(hour) - 12 + ":" + minute);
+  }
+
+  const hour = reminders[size - 1].substring(0, 2);
+  const minute = reminders[size - 1].substring(3, 5);
+  if (size != 1) speak("and");
+  speak(parseInt(hour) - 12 + ":" + minute);
+}
+
+function convertTo24HourFormat(input) {
+  // Extract the time part from the input using a regular expression
+  const match = input.match(/(\d{1,2}:\d{2})\s*([ap]\.m\.)/i);
+  if (!match) {
+    return "Invalid input format";
+  }
+
+  const time = match[1];
+  const period = match[2];
+
+  let [hours, minutes] = time.split(":");
+  hours = parseInt(hours);
+  minutes = parseInt(minutes);
+
+  if (period.toLowerCase() === "p.m." && hours !== 12) {
+    hours += 12;
+  } else if (period.toLowerCase() === "a.m." && hours === 12) {
+    hours = 0;
+  }
+
+  // Format the time as HH:MM
+  const formattedTime =
+    String(hours).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
+
+  return formattedTime;
+}
