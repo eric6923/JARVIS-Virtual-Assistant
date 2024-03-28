@@ -1,4 +1,37 @@
-// 12-03-2024 code
+// 28-03-2024 code
+
+// Define your OpenAI API key
+const OPENAI_API_KEY = 'Enter the API Key Here';
+
+// Function to send a message to the OpenAI chat completion endpoint
+async function sendMessageToOpenAI(message) {
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    { role: 'system', content: 'You are Jarvis virtual assistant' },
+                    { role: 'user', content: message }
+                ]
+            })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            return data.choices[0].message.content;
+        } else {
+            throw new Error(data.error.message || 'Failed to get response from OpenAI');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+}
 const btn = document.querySelector(".talk");
 const content = document.querySelector(".content");
 
@@ -189,7 +222,7 @@ function clearData() {
   }
 }
 
-function takeCommand(message) {
+async function takeCommand(message) {
   if (message.includes("sleep")) {
     isListening = false;
     speak("stopping services");
@@ -209,7 +242,7 @@ function takeCommand(message) {
   } else if (isListening == true && message.includes("open facebook")) {
     window.open("https://facebook.com", "_blank");
     speak("Opening Facebook...");
-  } else if (
+  } /*else if (
     isListening == true &&
     (message.includes("what is") ||
       message.includes("who is") ||
@@ -224,16 +257,22 @@ function takeCommand(message) {
       .replace("who is ", "")
       .replace("what are ", "");
     speak("This is what I found on the internet regarding " + trimmedMessage);
-  } else if (isListening == true && message.includes("open wikipedia")) {
+  }*/else if (isListening == true && message.includes("open wikipedia")) {
     window.open(
       `https://en.wikipedia.org/wiki/${message.replace("wikipedia", "")}`,
       "_blank"
     );
     speak("This is what I found on Wikipedia regarding " + message);
-  } //else if (isListening == true && message.includes('time')) {
-  //const time = new Date().toLocaleString(undefined, { hour: "numeric", minute: "numeric" });
-  // speak(time);
-  //}
+  } else if (isListening == true && (message.includes("what is") || message.includes("who is") || message.includes("what are"))) {
+    // Send message to OpenAI for response
+    try {
+        const response = await sendMessageToOpenAI(message);
+        speak(response);
+    } catch (error) {
+        console.error('Error:', error);
+        speak("I'm sorry, I couldn't process your request at the moment.");
+      }
+    }
   else if (isListening == true && message.includes("date")) {
     const date = new Date().toLocaleString(undefined, {
       month: "short",
