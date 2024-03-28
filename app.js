@@ -1,7 +1,7 @@
 // 28-03-2024 code
 
 // Define your OpenAI API key
-const OPENAI_API_KEY = 'Enter the API Key Here';
+const OPENAI_API_KEY = 'Enter Your API Key Here';
 
 // Function to send a message to the OpenAI chat completion endpoint
 async function sendMessageToOpenAI(message) {
