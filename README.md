@@ -1,10 +1,6 @@
-# JARVIS Virtual Assistant
+# JARVIS VIRTUAL ASSISTANT
 
-Welcome to JARVIS Virtual Assistant! Your intelligent, personalized assistant designed to streamline your tasks effortlessly. JARVIS leverages cutting-edge technologies such as SpeechSynthesis, Face-api.js, and OpenAI API to provide unparalleled assistance.
-
-## Overview
-
-JARVIS Virtual Assistant offers a seamless blend of innovative technologies to provide personalized support and intelligent assistance. Whether it's through facial recognition, voice interaction, or real-time updates, JARVIS is your go-to solution for optimizing productivity and enhancing user experience.
+Welcome to JARVIS Virtual Assistant! Your intelligent, personalized assistant designed to streamline your tasks effortlessly. JARVIS leverages cutting-edge technologies such as SpeechSynthesis, Face-api.js, and OpenAI API to provide unparalleled assistance. It offers a seamless blend of innovative technologies to provide personalized support and intelligent assistance. Whether it's through facial recognition, voice interaction, or real-time updates, JARVIS is your go-to solution for optimizing productivity and enhancing user experience.
 
 ## About the Author
 
