@@ -1,7 +1,10 @@
-// 28-03-2024 code
+// 15-04-2024 code
 
 // Define your OpenAI API key
-const OPENAI_API_KEY = 'Enter Your API Key Here';
+const OPENAI_API_KEY = 'OPEN_API_KEY';
+   
+//-------------------------------------------------------------------------------------
+
 
 // Function to send a message to the OpenAI chat completion endpoint
 async function sendMessageToOpenAI(message) {
@@ -228,11 +231,99 @@ async function takeCommand(message) {
     speak("stopping services");
     exit();
   } else if (
-    (isListening == true && message.includes("jarvis you up")) ||
-    message.includes("nope")
+    (isListening == true && message.includes("jarvis"))
   ) {
-    speak("For you sir, always");
-    exit();
+    speak("stand by and biometric scan ready");
+    const video = document.getElementById("video");
+    let intervalId;
+
+    Promise.all([
+            faceapi.nets.ssdMobilenetv1.loadFromUri('/model'),
+    faceapi.nets.faceLandmark68Net.loadFromUri('/model'),
+    faceapi.nets.faceRecognitionNet.loadFromUri('/model'),
+    ]).then(startWebcam).then(faceRecognition);
+
+    function startWebcam() {
+        navigator.mediaDevices.getUserMedia({
+            "video": true,
+            audio: false
+        }).then((stream) => {
+            video.srcObject = stream;
+        }).catch((error) => {
+            console.error(error);
+        });
+    }
+
+    function getLabeledFaceDescriptions() {
+        const labels = ["Aswin", "Eric"];
+        return Promise.all(
+            labels.map(async (label) => {
+                const descriptions = [];
+                for (let i = 1; i <= 2; i++) {
+                    const image = await faceapi.fetchImage(`./labels/${label}/${i}.png`);
+                    const detections = await faceapi
+                        .detectSingleFace(image)
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+                    descriptions.push(detections.descriptor);
+                }
+                return new faceapi.LabeledFaceDescriptors(label, descriptions);
+            })
+        );
+    }
+    isFaceRecognized = false;
+    async function faceRecognition() {
+        const LabeledFaceDescriptors = await getLabeledFaceDescriptions();
+        const faceMatcher = new faceapi.FaceMatcher(LabeledFaceDescriptors);
+
+        const container = document.getElementById("container");
+        const canvas = faceapi.createCanvasFromMedia(video);
+        container.append(canvas);
+
+        const displaySize = {
+            width: 300,
+            height: 220
+        };
+        faceapi.matchDimensions(canvas, displaySize);
+
+        intervalId = setInterval(async () => {
+            const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
+            console.log(detections.length);
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            const results = resizedDetections.map((d) => {
+                return faceMatcher.findBestMatch(d.descriptor);
+            });
+
+            results.forEach((result, i) => {
+                const box = resizedDetections[i].detection.box;
+                const drawBox = new faceapi.draw.DrawBox(box, {
+                    label: result.toString()
+                });
+                drawBox.draw(canvas);
+            
+                if ((result.label === "Aswin" || result.label === "Eric") && !isFaceRecognized) {
+                    speak("Welcome back sir, we are online and ready");
+                    isFaceRecognized = true; 
+                    clearInterval(intervalId);  
+                    
+                    let tracks = video.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+                    video.srcObject = null;
+                    canvas.remove();
+                }
+            });
+
+    }, 100);
+
+    // Listen for the pause event to stop the interval
+    video.addEventListener('pause', onPause);
+
+    function onPause() {
+        clearInterval(intervalId);
+        video.removeEventListener('pause', onPause); // Remove the event listener
+    }
+    } 
   } else if (isListening == true && message.includes("open google")) {
     window.open("https://google.com", "_blank");
     speak("Opening Google...");
@@ -242,28 +333,13 @@ async function takeCommand(message) {
   } else if (isListening == true && message.includes("open facebook")) {
     window.open("https://facebook.com", "_blank");
     speak("Opening Facebook...");
-  } /*else if (
-    isListening == true &&
-    (message.includes("what is") ||
-      message.includes("who is") ||
-      message.includes("what are"))
-  ) {
-    window.open(
-      `https://www.google.com/search?q=${message.replace(/\s+/g, "+")}`,
-      "_blank"
-    );
-    let trimmedMessage = message
-      .replace("what is ", "")
-      .replace("who is ", "")
-      .replace("what are ", "");
-    speak("This is what I found on the internet regarding " + trimmedMessage);
-  }*/else if (isListening == true && message.includes("open wikipedia")) {
+  } else if (isListening == true && message.includes("open wikipedia")) {
     window.open(
       `https://en.wikipedia.org/wiki/${message.replace("wikipedia", "")}`,
       "_blank"
     );
     speak("This is what I found on Wikipedia regarding " + message);
-  } else if (isListening == true && (message.includes("what is") || message.includes("who is") || message.includes("what are"))) {
+  } else if (isListening == true && (message.includes("what") || message.includes("who is") || message.includes("what are") || message.includes("how"))) {
     // Send message to OpenAI for response
     try {
         const response = await sendMessageToOpenAI(message);
@@ -355,7 +431,7 @@ async function takeCommand(message) {
     message.includes("what's on my shopping list")
   ) {
     loadData();
-  } else if (message.includes("jarvis")) {
+  } else if (message.includes("hello, jarvis")) {
     isListening = true;
     wishMe();
   } else if (isListening == true && message.includes("weather")) {
