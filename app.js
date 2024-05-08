@@ -1,7 +1,7 @@
 // 15-04-2024 code
 
 // Define your OpenAI API key
-const OPENAI_API_KEY = 'OPEN_API_KEY';
+const OPENAI_API_KEY = 'https://github.com/eric6923/JARVIS-Virtual-Assistant/blob/main/app.js';
    
 //-------------------------------------------------------------------------------------
 
